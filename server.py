@@ -1,8 +1,9 @@
+# server.py (top part)
 import os
 import json
 import re
 import time
-from flask import Flask, request, jsonify, send_from_directory, make_response
+from flask import Flask, request, jsonify, make_response, send_from_directory
 import requests
 
 # Serve frontend
@@ -12,13 +13,10 @@ app = Flask(
     static_url_path=""
 )
 
-# Your frontend URL
+# ===== RAILWAY CORS FIX =====
+# This is guaranteed to work with Vercel frontend
 FRONTEND_URL = "https://ig-ecru.vercel.app"
 
-print(f"[server.py] Backend starting. Will allow CORS for frontend: {FRONTEND_URL}")
-
-# ===== MANUAL CORS =====
-# Add CORS headers to all responses
 @app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
@@ -27,9 +25,9 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
-# Handle OPTIONS preflight requests globally
+# Catch all OPTIONS requests for preflight
 @app.route('/<path:path>', methods=['OPTIONS'])
-def options_preflight(path):
+def catch_all_options(path):
     response = make_response()
     response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
     response.headers['Access-Control-Allow-Credentials'] = 'true'
@@ -37,7 +35,18 @@ def options_preflight(path):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
+@app.route('/', methods=['OPTIONS'])
+def root_options():
+    response = make_response()
+    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    return response
+
+print(f"[server.py] CORS enabled for frontend: {FRONTEND_URL}")
 # ===== END CORS FIX =====
+
 
 
 # Load session from environment or config.json (if present)
