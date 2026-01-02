@@ -2,28 +2,43 @@ import os
 import json
 import re
 import time
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask import Flask, request, jsonify, send_from_directory, make_response
 import requests
-# Replace this URL with your actual Vercel frontend URL
-FRONTEND_URL = "https://ig-ecru.vercel.app"
 
+# Serve frontend
 app = Flask(
     __name__,
     static_folder="frontend",
     static_url_path=""
 )
 
-# CORS setup to allow requests from your Vercel frontend only
-CORS(
-    app,
-    origins=[FRONTEND_URL],    # Only allow your frontend
-    supports_credentials=True, # Allow cookies/session if needed
-    methods=["GET", "POST", "OPTIONS"], # Allow preflighted methods
-    allow_headers=["Content-Type", "Authorization"] # Allow JSON
-)
+# Your frontend URL
+FRONTEND_URL = "https://ig-ecru.vercel.app"
 
-print(f"[server.py] CORS enabled for frontend: {FRONTEND_URL}")
+print(f"[server.py] Backend starting. Will allow CORS for frontend: {FRONTEND_URL}")
+
+# ===== MANUAL CORS =====
+# Add CORS headers to all responses
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    return response
+
+# Handle OPTIONS preflight requests globally
+@app.route('/<path:path>', methods=['OPTIONS'])
+def options_preflight(path):
+    response = make_response()
+    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    return response
+
+# ===== END CORS FIX =====
+
 
 # Load session from environment or config.json (if present)
 def load_instagram_session():
