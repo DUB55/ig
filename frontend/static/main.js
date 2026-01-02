@@ -6,6 +6,10 @@ const loading = document.getElementById('loading');
 const resultSection = document.getElementById('result');
 const directUrl = document.getElementById('directUrl');
 const previewVideo = document.getElementById('previewVideo');
+const BACKEND_URL =
+  import.meta?.env?.VITE_BACKEND_URL ||
+  window.BACKEND_URL ||
+  'https://ig-ecru.vercel.app/api/extract-reel';
 
 extractBtn.addEventListener('click', testWithBackend);
 quickBtn.addEventListener('click', quickTest);
@@ -24,11 +28,14 @@ async function testWithBackend() {
 
   try {
     // When server and frontend are served from same origin, this will be a relative call.
-    const resp = await fetch('/api/extract-reel', {
+    const resp = await fetch(BACKEND_URL,
+ {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
     });
+
+
     const data = await resp.json();
     if (resp.ok && data.success) {
       directUrl.textContent = data.video_url;
