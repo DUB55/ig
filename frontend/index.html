@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Instagram Reel Extractor — PWA</title>
+
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 24px; max-width: 900px; margin: auto; }
+    input[type="url"] { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; }
+    button { padding: 10px 14px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    .card { background:#f7f7f7; padding: 12px; border-radius: 8px; margin-top: 12px; }
+    pre { background: #111; color: #fff; padding: 12px; border-radius: 6px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>Instagram Reel Extractor (PWA)</h1>
+
+  <p>Paste an Instagram reel / post URL (reel, p or tv) and click <strong>Extract</strong>. The front-end calls the backend and shows the direct MP4 URL if extraction succeeds.</p>
+
+  <input id="reelUrlInput" type="url" placeholder="https://www.instagram.com/reel/SHORTCODE/" />
+  <div style="display:flex; gap:10px;">
+    <button id="extractBtn">Extract (use backend)</button>
+    <button id="quickBtn">Quick test (public services)</button>
+  </div>
+
+  <div id="loading" style="display:none; margin-top:8px;">Loading…</div>
+
+  <div id="result" class="card" style="display:none;">
+    <h3>Result</h3>
+    <div>
+      <strong>Direct URL:</strong>
+      <pre id="directUrl"></pre>
+    </div>
+    <div style="margin-top:10px;">
+      <video id="previewVideo" controls style="max-width:100%; display:none;"></video>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;">
+    <h3>Production notes</h3>
+    <ol>
+      <li>Client-side scraping is unreliable.</li>
+      <li>Use server-side session, rotate IPs and respect rate limits.</li>
+      <li>Do not publish session credentials.</li>
+    </ol>
+  </div>
+
+  <script src="/static/main.js"></script>
+</body>
+</html>
