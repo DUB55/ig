@@ -5,12 +5,25 @@ import time
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
+# Replace this URL with your actual Vercel frontend URL
+FRONTEND_URL = "https://ig-ecru.vercel.app"
 
-# Serve the frontend from the "frontend" folder
-app = Flask(__name__,
-            static_folder="frontend",
-            static_url_path="")
-CORS(app, supports_credentials=True)
+app = Flask(
+    __name__,
+    static_folder="frontend",
+    static_url_path=""
+)
+
+# CORS setup to allow requests from your Vercel frontend only
+CORS(
+    app,
+    origins=[FRONTEND_URL],    # Only allow your frontend
+    supports_credentials=True, # Allow cookies/session if needed
+    methods=["GET", "POST", "OPTIONS"], # Allow preflighted methods
+    allow_headers=["Content-Type", "Authorization"] # Allow JSON
+)
+
+print(f"[server.py] CORS enabled for frontend: {FRONTEND_URL}")
 
 # Load session from environment or config.json (if present)
 def load_instagram_session():
