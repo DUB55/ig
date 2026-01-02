@@ -9,7 +9,7 @@ const previewVideo = document.getElementById('previewVideo');
 const BACKEND_URL =
   import.meta?.env?.VITE_BACKEND_URL ||
   window.BACKEND_URL ||
-  'https://ig-ecru.vercel.app/api/extract-reel';
+  'https://surprising-eagerness.up.railway.app/api/extract-reel';
 
 extractBtn.addEventListener('click', testWithBackend);
 quickBtn.addEventListener('click', quickTest);
