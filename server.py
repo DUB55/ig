@@ -1,51 +1,71 @@
-# server.py (top part)
-import os
-import json
-import re
-import time
+# ===== RAILWAY / VERCEL CORS FIX (replace previous CORS code) =====
 from flask import Flask, request, jsonify, make_response, send_from_directory
-import requests
 
-# Serve frontend
-app = Flask(
-    __name__,
-    static_folder="frontend",
-    static_url_path=""
-)
-
-# ===== RAILWAY CORS FIX =====
-# This is guaranteed to work with Vercel frontend
+# Serve frontend as before (app already created above)
+# FRONTEND_URL should be your Vercel origin
 FRONTEND_URL = "https://ig-ecru.vercel.app"
 
+# Allowed origins set (you can add more if needed)
+ALLOWED_ORIGINS = {FRONTEND_URL}
+
+print(f"[server.py] Backend starting. Allowed CORS origins: {ALLOWED_ORIGINS}")
+
+def _cors_response_headers(origin):
+    """
+    Return a dict with CORS headers to attach to responses.
+    Only returns headers if origin is allowed.
+    """
+    if not origin or origin not in ALLOWED_ORIGINS:
+        return {}
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization"
+    }
+
+# Add CORS headers to every response Flask generates
 @app.after_request
 def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    origin = request.headers.get("Origin")
+    headers = _cors_response_headers(origin)
+    for k, v in headers.items():
+        response.headers[k] = v
     return response
 
-# Catch all OPTIONS requests for preflight
-@app.route('/<path:path>', methods=['OPTIONS'])
-def catch_all_options(path):
-    response = make_response()
-    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    return response
+# Explicitly handle OPTIONS preflight for the exact API path the frontend calls.
+# This prevents 404 for preflight and ensures the correct headers are returned.
+@app.route("/api/extract-reel", methods=["OPTIONS"])
+def options_extract_reel():
+    origin = request.headers.get("Origin")
+    headers = _cors_response_headers(origin)
+    resp = make_response("", 204)
+    for k, v in headers.items():
+        resp.headers[k] = v
+    return resp
 
-@app.route('/', methods=['OPTIONS'])
-def root_options():
-    response = make_response()
-    response.headers['Access-Control-Allow-Origin'] = FRONTEND_URL
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    return response
+# Also handle OPTIONS for other /api/* paths (catch-all for API preflight)
+@app.route("/api/<path:path>", methods=["OPTIONS"])
+def options_api(path):
+    origin = request.headers.get("Origin")
+    headers = _cors_response_headers(origin)
+    resp = make_response("", 204)
+    for k, v in headers.items():
+        resp.headers[k] = v
+    return resp
 
-print(f"[server.py] CORS enabled for frontend: {FRONTEND_URL}")
+# Generic OPTIONS handler for any other paths (static or root)
+@app.route("/", methods=["OPTIONS"])
+@app.route("/<path:path>", methods=["OPTIONS"])
+def options_catch_all(path=None):
+    origin = request.headers.get("Origin")
+    headers = _cors_response_headers(origin)
+    resp = make_response("", 204)
+    for k, v in headers.items():
+        resp.headers[k] = v
+    return resp
 # ===== END CORS FIX =====
+
 
 
 
